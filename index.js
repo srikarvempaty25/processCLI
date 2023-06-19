@@ -26,8 +26,8 @@ const options = yargs
     demandOption: false,
   })
   .option('kill', {
-    describe: 'Kill processes by name',
-    type: 'string',
+    describe: 'Kill all running processes',
+    type: 'boolean',
     demandOption: false,
   })
   .help(true)
@@ -55,10 +55,9 @@ if (argv.listprocesses) {
 }
 
 if (argv.kill) {
-  const processName = argv.kill;
-  execPromise(`taskkill /F /IM ${processName}`)
+  execPromise('taskkill /F /FI "STATUS eq running"')
     .then(() => {
-      console.log(`Successfully killed processes with name: ${processName}`);
+      console.log('Successfully killed all running processes');
     })
     .catch((error) => {
       console.error(`Error killing processes: ${error}`);
