@@ -9,8 +9,8 @@ const util = require('util');
 const execPromise = util.promisify(exec);
 
 const usage = chalk.keyword('violet')(
-  "\nUsage: mycli [--listprocesses] [--kill <process_name>]\n" +
-    boxen(chalk.green('\n' + 'Lists the currently running processes and optionally kills processes by name' + '\n'), {
+  "\nUsage: mycli [--listprocesses] [--kill all] [--kill browser]\n" +
+    boxen(chalk.green('\n' + 'Lists the currently running processes and optionally kills processes according to choice' + '\n'), {
       padding: 1,
       borderColor: 'green',
       dimBorder: true,
@@ -26,7 +26,7 @@ const options = yargs
     demandOption: false,
   })
   .option('kill', {
-    describe: 'Kill processes by name',
+    describe: 'Kill processes',
     type: 'string',
     demandOption: false,
   })
@@ -54,11 +54,22 @@ if (argv.listprocesses) {
     });
 }
 
-if (argv.kill) {
-  const processName = argv.kill;
-  execPromise(`taskkill /F /IM ${processName}`)
+if (argv.kill === 'all') {
+  execPromise('taskkill /F /FI "STATUS eq running"')
     .then(() => {
-      console.log(`Successfully killed processes with name: ${processName}`);
+      console.log('Successfully killed all running processes');
+    })
+    .catch((error) => {
+      console.error(`Error killing processes: ${error}`);
+    });
+}
+
+if (argv.kill === 'browser') {
+  const browserProcesses = ['chrome.exe', 'firefox.exe', 'msedge.exe', 'brave.exe'];
+  const pName = browserProcesses.map((processName) => `IMAGENAME eq ${processName}`).join(' || ');
+  execPromise(`taskkill /F /FI "${pName}"`)
+    .then(() => {
+      console.log('Successfully killed browser processes');
     })
     .catch((error) => {
       console.error(`Error killing processes: ${error}`);
